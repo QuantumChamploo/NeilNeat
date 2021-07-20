@@ -14,7 +14,9 @@ def sigmoid_activation(z):
 
 
 def tanh_activation(z):
-    z = max(-60.0, min(60.0, 2.5 * z))
+
+    #z = max(-60.0, min(60.0, 2.5 * z))
+
     return math.tanh(z)
 
 
