@@ -21,6 +21,7 @@ class Population(object):
 
     def __init__(self, config, initial_state=None):
         print("further Neil changes")
+        self.memory = [[],[]]
         self.reporters = ReporterSet()
         self.config = config
         stagnation = config.stagnation_type(config.stagnation_config, self.reporters)

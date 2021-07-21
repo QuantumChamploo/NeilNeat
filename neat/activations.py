@@ -9,7 +9,7 @@ import types
 
 
 def sigmoid_activation(z):
-    z = max(-60.0, min(60.0, 5.0 * z))
+    #z = max(-60.0, min(60.0, 5.0 * z))
     return 1.0 / (1.0 + math.exp(-z))
 
 
@@ -50,8 +50,9 @@ def selu_activation(z):
 
 
 def softplus_activation(z):
-    z = max(-60.0, min(60.0, 5.0 * z))
-    return 0.2 * math.log(1 + math.exp(z))
+    #z = max(-60.0, min(60.0, 5.0 * z))
+    #return 0.2 * math.log(1 + math.exp(z))
+    return math.log(1 + math.exp(z))
 
 
 def identity_activation(z):

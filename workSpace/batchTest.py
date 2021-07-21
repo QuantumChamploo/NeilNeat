@@ -2,10 +2,10 @@ import neat
 import os
 import visualize
 import numpy as np
+import time
 
 
 
-print("first test")
 
 def find_index(array):
     s = np.array(array)
@@ -31,43 +31,19 @@ def run(config_file):
     net = neat.nn.FeedForwardNetwork.create(genome, config)
 
     net = neat.nn.FeedForwardNetwork.create(genome, config)
-    #visualize.draw_net(config, genome, True, 'snakeTest')
-    output2 = net.activate((1, 0,1))
-    # for node, act_func, agg_func, bias, response, links in net.node_evals:
-    #     for i, w in links:
-    #         print(w)
-    output = net.prop_activate((1,0,1),[0,1,0,0,0])
-    print("the second weights")
-    # for node, act_func, agg_func, bias, response, links in net.node_evals:
-    #     for i, w in links:
-    #         print(w)
-    print("first output")
-    print(output)
-    print("the original activate function")
-    print(output2)
+    inputs = [[0,1],[1,0]]
+    outputs = [[1,0],[0,1]]
 
-    for i in range(100):
-        output = net.prop_activate([1, 0, 1],[0,1,0,0,1])
+    start1 = time.time()
+    intro = net.backProp_activate(inputs,outputs,.000001)
+    print(intro)
+    lr = .05
+    for i in range(500):
+        net.backProp_activate(inputs,outputs,lr)
+    look = net.backProp_activate(inputs,outputs,lr)
+    print(look)
 
 
-
-    print('the 100th output is ')
-    print(output)
-
-
-
-    # ind_arr = find_index(output)
-    #
-    # print(ind_arr)
-
-    #bce = tf.keras.losses.BinaryCrossentropy(from_logits=True)
-
-
-    # print(genomes)
-    # for genome_id, genome in genomes:
-    #     print(genome_id)
-    #     print(genome)
-    #     print("\n \n \n")
 
 
 if __name__ == '__main__':
