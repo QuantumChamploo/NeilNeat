@@ -175,6 +175,85 @@ class FeedForwardNetwork(object):
 
         return outReturn
 
+    def backProp_Genome(self, inputs,outputs,learning_rate,genome):
+        if len(self.input_nodes) != len(inputs):
+            raise RuntimeError("Expected {0:n} inputs, got {1:n}".format(len(self.input_nodes), len(inputs)))
+
+
+        tensValues = self.values
+        tensDict = {}
+        tensVars = []
+        tensEvals = []
+
+        outReturn = []
+
+        for node, act_func, agg_func, bias, response, links in self.node_evals:
+            tensLinks = []
+            for i, w in links:
+                hldVar = tf.Variable(w,dtype=tf.float64)
+                tensLinks.append((i, hldVar))
+                tensVars.append(hldVar)
+                tensDict[hldVar.ref()] = w
+
+            tensEvals.append((node, act_func, agg_func, bias, response, tensLinks))
+        tensDif = []
+        for k in range(len(tensVars)):
+            tensDif.append(0)
+
+
+
+        for j in range(len(inputs)):
+            with tf.GradientTape(persistent=True) as tape:
+                bce = tf.keras.losses.BinaryCrossentropy(from_logits=True)
+                for k, v in zip(self.input_nodes, inputs[j]):
+                    self.values[k] = v
+                for node, act_func, agg_func, bias, response, links in tensEvals:
+                    node_inputs = []
+                    s = 0
+                    for i, w in links:
+
+                        node_inputs.append(tensValues[i] * w)
+
+                        s += tensValues[i] * w
+
+
+                    tensValues[node] = actDict[act_func](bias + response * s)
+
+
+                loss = bce(outputs[j],[tensValues[i] for i in self.output_nodes])
+
+            num = 0
+            for node, act_func, agg_func, bias, response, links in tensEvals:
+                for i,w in links:
+                    dif = tape.gradient(loss,tensVars[num])
+                    tensDif[num] += dif
+                    num += 1
+
+
+            outReturn.append([tensValues[i].numpy() for i in self.output_nodes])
+        newEvals = []
+        count = 0
+        # for i in tensVars:
+        #     print(i)
+        for node, act_func, agg_func, bias, response, links in self.node_evals:
+            newLinks = []
+            for i, w in links:
+                delta = tensDif[count]
+
+                w -= delta*learning_rate
+                newLinks.append((i, w.numpy()))
+                count += 1
+                genome.connections[(i,node)].weight = w
+
+
+            newEvals.append((node, act_func, agg_func, bias, response, newLinks))
+
+        self.node_evals = newEvals
+
+
+
+        return outReturn
+
     def backProp_activate2(self, inputs,outputs):
         if len(self.input_nodes) != len(inputs):
             raise RuntimeError("Expected {0:n} inputs, got {1:n}".format(len(self.input_nodes), len(inputs)))

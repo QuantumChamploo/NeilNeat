@@ -2,10 +2,10 @@ import neat
 import os
 import visualize
 import numpy as np
-import time
 
 
 
+print("first test")
 
 def find_index(array):
     s = np.array(array)
@@ -30,21 +30,21 @@ def run(config_file):
     print(genome)
     net = neat.nn.FeedForwardNetwork.create(genome, config)
 
-    net = neat.nn.FeedForwardNetwork.create(genome, config)
-    inputs = [[0,1],[1,0]]
-    outputs = [[1,0],[0,1]]
+    print(genome.connections.values())
+    for i in genome.connections.values():
+        print(i.weight)
+        print(i.key)
+        print(genome.connections[i.key].key)
+    print(genome.connections.values())
+    print(genome.connections.keys())
 
-    start1 = time.time()
-    intro = net.backProp_activate(inputs,outputs,.000001)
-    print(intro)
-    lr = 1
-    for i in range(500):
-        net.backProp_activate(inputs,outputs,lr)
-    look = net.backProp_activate(inputs,outputs,lr)
-    print("final guess")
-    print(look)
+    for node, act_func, agg_func, bias, response, links in net.node_evals:
 
-
+        for i, w in links:
+            print(node)
+            print(i)
+            print(w)
+            print(genome.connections[(i,node)].weight)
 
 
 if __name__ == '__main__':
