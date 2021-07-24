@@ -56,8 +56,8 @@ class snakeGame():
 		return vals
 	def collideWall(self,arr):
 		hld = False
-		if arr[0] < 0 or arr[1] < 0 or arr[0] > frame_size_x or arr[1] > frame_size_y:
-			#print('broke somethign')
+		if arr[0] < 0 or arr[1] < 0 or arr[0] >= frame_size_x or arr[1] >= frame_size_y:
+			#print("there was wall collisoin \n\n")
 			hld = True
 		return hld
 
@@ -68,6 +68,78 @@ class snakeGame():
 			return True
 		else:
 			return False
+
+	def movedTowardsFood(self,direction):
+		self.game8()
+		if direction == "left" and self.direction != "left":
+			if self.sight[3][1] == 1 and self.sight[3][0] == 0:
+				return True
+		if direction == "right" and self.direction != "right":
+			if self.sight[0][1] == 1 and self.sight[0][0] == 0:
+				return True
+		if direction == "up" and self.direction != "up":
+			if self.sight[2][1] == 1 and self.sight[2][0] == 0:
+				return True
+		if direction == "down" and self.direction != "down":
+			if self.sight[1][1] == 1 and self.sight[1][0] == 0:
+				return True
+
+		return False
+
+	def munchMove(self,direction):
+		if direction == "up":
+			if self.pos[0] == self.food_pos[0] and self.pos[1] - 10 == self.food_pos[1]:
+				return True
+		if direction == "right":
+			if self.pos[0]+10 == self.food_pos[0] and self.pos[1] == self.food_pos[1]:
+				return True
+		if direction == "left":
+			if self.pos[0]-10 == self.food_pos[0] and self.pos[1] == self.food_pos[1]:
+				return True
+		if direction == "down":
+			if self.pos[0] == self.food_pos[0] and self.pos[1] + 10 == self.food_pos[1]:
+				return True
+		return False
+
+
+	def movedFromWall(self,direction):
+		self.game8()
+		if self.direction == "left":
+			if self.pos[0] == 0:
+				if direction == "up":
+					if self.sight[2][0] == 0:
+						return True
+				if direction == "down":
+					if self.sight[1][0] == 0:
+						return True
+		if self.direction == "up":
+			if self.pos[1] == 0:
+				if direction == "left":
+					if self.sight[3][0] == 0:
+						return True
+				if direction == "right":
+					if self.sight[0][0] == 0:
+						return True
+
+		if self.direction == "right":
+			if self.pos[0] == frame_size_x - 10:
+				if direction == "up":
+					if self.sight[2][0] == 0:
+						return True
+				if direction == "down":
+					if self.sight[1][0] == 0:
+						return True
+		if self.direction == "down":
+			if self.pos[1] == frame_size_y - 10:
+				if direction == "left":
+					if self.sight[3][0] == 0:
+						return True
+				if direction == "right":
+					if self.sight[0][0] == 0:
+						return True
+		return False
+
+
 
 	def propDirect(self,direct):
 		#print('called propDirects')
@@ -190,9 +262,13 @@ class snakeGame():
 	def checkGame(self):
 		if self.pos[0] < 0 or self.pos[0] >= frame_size_x :
 			self.gameOver = True
+			print("the collide wall value")
+			print(self.collideWall(self.pos))
 			return False
 		if self.pos[1] < 0 or self.pos[1] >= frame_size_y:
 			self.gameOver = True
+			print("the collide wall value")
+			print(self.collideWall(self.pos))
 			return False
 		for block in self.body[1:]:
 			if self.pos[0] == block[0] and self.pos[1] == block[1]:
