@@ -1,6 +1,8 @@
 from neat.graphs import feed_forward_layers
 from neat.aggregations import *
 from neat.activations import  *
+import numpy as np
+import time
 
 import tensorflow as tf
 import math
@@ -10,6 +12,10 @@ actDict = {tanh_activation:tf.keras.activations.tanh,sigmoid_activation:tf.keras
            relu_activation:tf.keras.activations.relu,elu_activation:tf.keras.activations.elu,
            softplus_activation:tf.keras.activations.softplus,identity_activation:tf.keras.activations.linear}
 
+def find_index(array):
+    s = np.array(array)
+    sort_index = np.argsort(s)
+    return sort_index
 
 class FeedForwardNetwork(object):
     def __init__(self, inputs, outputs, node_evals):
@@ -34,6 +40,21 @@ class FeedForwardNetwork(object):
 
 
         return [self.values[i] for i in self.output_nodes]
+
+    def batchAcc(self,inputs,outputs):
+        if len(inputs) != len(outputs):
+            print("inputs size does not match output size")
+            return 0
+        right = 0
+        for i in range(len(inputs)):
+            out = self.activate(inputs[i])
+
+            if find_index(out)[-1] == find_index(outputs[i])[-1]:
+                right += 1
+        return right/len(inputs)
+
+
+
     def prop_activate(self, inputs,expOutput):
         if len(self.input_nodes) != len(inputs):
             raise RuntimeError("Expected {0:n} inputs, got {1:n}".format(len(self.input_nodes), len(inputs)))
@@ -176,8 +197,8 @@ class FeedForwardNetwork(object):
         return outReturn
 
     def backProp_Genome(self, inputs,outputs,learning_rate,genome):
-        if len(self.input_nodes) != len(inputs):
-            raise RuntimeError("Expected {0:n} inputs, got {1:n}".format(len(self.input_nodes), len(inputs)))
+        # if len(self.input_nodes) != len(inputs):
+        #     raise RuntimeError("Expected {0:n} inputs, got {1:n}".format(len(self.input_nodes), len(inputs)))
 
 
         tensValues = self.values
@@ -247,6 +268,202 @@ class FeedForwardNetwork(object):
 
 
             newEvals.append((node, act_func, agg_func, bias, response, newLinks))
+
+        self.node_evals = newEvals
+
+
+
+        return outReturn
+
+    @tf.function
+    def backProp_GenomeTimed(self, inputs,outputs,learning_rate,genome):
+        # if len(self.input_nodes) != len(inputs):
+        #     raise RuntimeError("Expected {0:n} inputs, got {1:n}".format(len(self.input_nodes), len(inputs)))
+
+
+        pretime1 = time.time()
+
+
+        tensValues = self.values
+        tensDict = {}
+        tensVars = []
+        tensEvals = []
+
+        outReturn = []
+
+        for node, act_func, agg_func, bias, response, links in self.node_evals:
+            tensLinks = []
+            for i, w in links:
+                hldVar = tf.Variable(w,dtype=tf.float64)
+                tensLinks.append((i, hldVar))
+                tensVars.append(hldVar)
+                tensDict[hldVar.ref()] = w
+
+            tensEvals.append((node, act_func, agg_func, bias, response, tensLinks))
+        tensDif = []
+        for k in range(len(tensVars)):
+            tensDif.append(0)
+
+        pretime2 = time.time()
+
+        print("the pre_eval time is")
+        print(pretime2-pretime1)
+
+        for j in range(len(inputs)):
+            loopTime1 = time.time()
+            with tf.GradientTape(persistent=True) as tape:
+                bce = tf.keras.losses.BinaryCrossentropy(from_logits=True)
+                for k, v in zip(self.input_nodes, inputs[j]):
+                    self.values[k] = v
+                for node, act_func, agg_func, bias, response, links in tensEvals:
+                    node_inputs = []
+                    s = 0
+                    for i, w in links:
+
+                        node_inputs.append(tensValues[i] * w)
+
+                        s += tensValues[i] * w
+
+
+                    tensValues[node] = actDict[act_func](bias + response * s)
+
+
+                loss = bce(outputs[j],[tensValues[i] for i in self.output_nodes])
+
+            num = 0
+            for node, act_func, agg_func, bias, response, links in tensEvals:
+                for i,w in links:
+                    dif = tape.gradient(loss,tensVars[num])
+                    tensDif[num] += dif
+                    num += 1
+
+            print("the loop time is ")
+            loopTime2 = time.time()
+            print(loopTime2-loopTime1)
+            # for i in self.output_nodes:
+            #     print(tensValues[i])
+
+            outReturn.append([tensValues[i].numpy for i in self.output_nodes])
+
+
+            print("in loop:")
+            print(j+1)
+
+
+        postTime1 = time.time()
+
+        newEvals = []
+        count = 0
+        # for i in tensVars:
+        #     print(i)
+        for node, act_func, agg_func, bias, response, links in self.node_evals:
+            newLinks = []
+            for i, w in links:
+                delta = tensDif[count]
+
+                w -= delta*learning_rate
+                newLinks.append((i, w.numpy()))
+                count += 1
+                genome.connections[(i,node)].weight = w
+
+
+            newEvals.append((node, act_func, agg_func, bias, response, newLinks))
+
+        self.node_evals = newEvals
+
+
+        postTime2 = time.time()
+
+        print("the post loop time:")
+        print(postTime2-postTime1)
+
+        return outReturn
+
+    def backProp_Genome2(self, inputs,outputs,learning_rate,genome):
+        # if len(self.input_nodes) != len(inputs):
+        #     raise RuntimeError("Expected {0:n} inputs, got {1:n}".format(len(self.input_nodes), len(inputs)))
+
+        if len(inputs) == 0 or len(outputs) == 0:
+            return []
+        tensValues = self.values
+        tensDict = {}
+        tensVars = []
+        tensEvals = []
+
+        outReturn = []
+        # print("the genome is ")
+        # print(genome)
+
+        for node, act_func, agg_func, bias, response, links in self.node_evals:
+            tensLinks = []
+            for i, w in links:
+                # print("printing links pre eval")
+                # print(i)
+                # print(node)
+                hldVar = tf.Variable(w,dtype=tf.float64)
+                tensLinks.append((i, hldVar))
+                tensVars.append(hldVar)
+                tensDict[hldVar.ref()] = w
+
+            tensEvals.append((node, act_func, agg_func, bias, response, tensLinks))
+        tensDif = []
+        for k in range(len(tensVars)):
+            tensDif.append(0)
+
+
+
+        for j in range(len(inputs)):
+            # print("doing a backprop input")
+            # print(j)
+            with tf.GradientTape(persistent=True) as tape:
+                bce = tf.keras.losses.BinaryCrossentropy(from_logits=True)
+                for k, v in zip(self.input_nodes, inputs[j]):
+                    self.values[k] = v
+                for node, act_func, agg_func, bias, response, links in tensEvals:
+                    node_inputs = []
+                    s = 0
+                    for i, w in links:
+
+                        node_inputs.append(tensValues[i] * w)
+
+                        s += tensValues[i] * w
+
+
+                    tensValues[node] = actDict[act_func](bias + response * s)
+
+
+                loss = bce(outputs[j],[tensValues[i] for i in self.output_nodes])
+
+            num = 0
+            for node, act_func, agg_func, bias, response, links in tensEvals:
+                for i,w in links:
+                    dif = tape.gradient(loss,tensVars[num])
+                    tensDif[num] += dif
+                    num += 1
+
+
+            outReturn.append([tensValues[i] for i in self.output_nodes])
+        newEvals = []
+        count = 0
+        # for i in tensVars:
+        #     print(i)
+        for node, act_func, agg_func, bias, response, links in tensEvals:
+            #newLinks = []
+            for i, w in links:
+                # print("printing links")
+                # print(i)
+                # print(node)
+                wHld = w.numpy()
+                #print(wHld)
+                delta = tensDif[count]
+
+                wHld = wHld - delta*learning_rate
+                #newLinks.append((i, w.numpy()))
+                count += 1
+                genome.connections[(i,node)].weight = wHld
+
+
+            #newEvals.append((node, act_func, agg_func, bias, response, newLinks))
 
         self.node_evals = newEvals
 

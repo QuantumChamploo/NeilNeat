@@ -27,9 +27,10 @@ def run(config_file):
     genome1key = next(iter(p.population))
     genome = p.population[genome1key]
     print(genome1key)
+    print("the genome is")
     print(genome)
     net = neat.nn.FeedForwardNetwork.create(genome, config)
-
+    print("genome connection values")
     print(genome.connections.values())
     for i in genome.connections.values():
         print(i.weight)

@@ -61,7 +61,7 @@ def eval_genomes(genomes, config):
             inputs = [[0, 1], [1, 0]]
             outputs = [[1, 0], [0, 1]]
             lr = 1
-            if gen == 1:
+            if gen == 0:
                 for i in range(200):
                     #print("prebackprop")
                     net.backProp_activate(inputs, outputs, lr)
@@ -109,7 +109,7 @@ def run(config_file):
     #p.add_reporter(neat.Checkpointer(5))
 
     # Run for up to 50 generations.
-    winner = p.run(eval_genomes,3)
+    winner = p.run(eval_genomes,10)
 
     net = neat.nn.FeedForwardNetwork.create(winner, config)
 

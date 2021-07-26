@@ -90,16 +90,31 @@ class snakeGame():
 		if direction == "up":
 			if self.pos[0] == self.food_pos[0] and self.pos[1] - 10 == self.food_pos[1]:
 				return True
-		if direction == "right":
+			else:
+				return False
+		elif direction == "right":
 			if self.pos[0]+10 == self.food_pos[0] and self.pos[1] == self.food_pos[1]:
 				return True
-		if direction == "left":
+			else:
+				return False
+		elif direction == "left":
 			if self.pos[0]-10 == self.food_pos[0] and self.pos[1] == self.food_pos[1]:
 				return True
-		if direction == "down":
+			else:
+				return False
+		elif direction == "down":
 			if self.pos[0] == self.food_pos[0] and self.pos[1] + 10 == self.food_pos[1]:
+				# print("\n\n")
+				# print("inside munchmove down")
+				# print(self.toString())
+				# print("\n\n")
 				return True
-		return False
+			else:
+				return False
+		else:
+			print("put wrong direction into munchmove")
+			return False
+
 
 
 	def movedFromWall(self,direction):
@@ -139,7 +154,34 @@ class snakeGame():
 						return True
 		return False
 
+	def check4Mem(self,direction):
+		if self.munchMove(direction):
+			#print("munch move")
+			return True
+		elif self.movedFromWall(direction):
+			#print("moved from wall")
+			return True
+		elif self.movedTowardsFood(direction):
+			#print("moved towards food")
+			return True
+		else:
+			return False
 
+	def commit2Mem(self,direction_num):
+		self.game8()
+		first = self.sight
+		if direction_num == 0:
+			second = [1,0,0,0]
+		elif direction_num == 1:
+			second = [0,1,0,0]
+		elif direction_num == 2:
+			second = [0,0,1,0]
+		elif direction_num == 3:
+			second = [0,0,0,1]
+		else:
+			second = [0,0,0,0]
+			print("bad direction input commit2Mem")
+		return first, second
 
 	def propDirect(self,direct):
 		#print('called propDirects')
@@ -262,13 +304,13 @@ class snakeGame():
 	def checkGame(self):
 		if self.pos[0] < 0 or self.pos[0] >= frame_size_x :
 			self.gameOver = True
-			print("the collide wall value")
-			print(self.collideWall(self.pos))
+			# print("the collide wall value")
+			# print(self.collideWall(self.pos))
 			return False
 		if self.pos[1] < 0 or self.pos[1] >= frame_size_y:
 			self.gameOver = True
-			print("the collide wall value")
-			print(self.collideWall(self.pos))
+			# print("the collide wall value")
+			# print(self.collideWall(self.pos))
 			return False
 		for block in self.body[1:]:
 			if self.pos[0] == block[0] and self.pos[1] == block[1]:

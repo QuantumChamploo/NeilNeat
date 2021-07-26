@@ -28,6 +28,8 @@ def find_index(array):
     sort_index = np.argsort(s)
     return sort_index
 
+memory = [[],[]]
+
 def eval_genomes(genomes, config):
     #print('in eval')
 
@@ -46,6 +48,7 @@ def eval_genomes(genomes, config):
         nets.append(net)
         games.append(snakeGame())
         ge.append(genome)
+        #print(genome)
 
     run = True
     tab = 0
@@ -62,12 +65,14 @@ def eval_genomes(genomes, config):
             outputs = [[1, 0], [0, 1]]
             lr = 1
             if gen == 1:
-                for i in range(200):
+                for i in range(100):
                     #print("prebackprop")
                     net.backProp_Genome(inputs, outputs, lr,ge[x])
                 look = net.backProp_Genome(inputs, outputs, lr,ge[x])
-                # print("final guess")
-                # print(look)
+                print("final guess")
+                print(look)
+            print("the acc is")
+            print(net.batchAcc(inputs,outputs))
             out = net.activate(inputs[0])
 
             ind_arr = find_index(out)
@@ -109,7 +114,7 @@ def run(config_file):
     #p.add_reporter(neat.Checkpointer(5))
 
     # Run for up to 50 generations.
-    winner = p.run(eval_genomes,100)
+    winner = p.run(eval_genomes,25)
 
     net = neat.nn.FeedForwardNetwork.create(winner, config)
 
@@ -148,5 +153,5 @@ if __name__ == '__main__':
     # here so that the script will run successfully regardless of the
     # current working directory.
     local_dir = os.path.dirname(__file__)
-    config_path = os.path.join(local_dir, 'config.txt')
+    config_path = os.path.join(local_dir, 'config2.txt')
     run(config_path)
