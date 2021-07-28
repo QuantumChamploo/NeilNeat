@@ -78,14 +78,15 @@ def eval_genomes(genomes, config):
             enumTime1 = time.time()
 
             lr = 1
-            batchSize = 10
-
-            if gen % 5 == 0 and len(pastGamesStates[0]) > batchSize and x == 1:
+            batchSize = 100
+            stillDo = True
+            if gen % 5 == 0 and len(pastGamesStates[0]) > batchSize and x == 1 and stillDo:
+                stillDo = False
                 batchTime1 = time.time()
                 print("about to start 10 sized training loop on all examples")
                 for i in range(100):
                     print(i)
-                    nets[games.index(game)].backProp_Genome(pastGamesStates[0][0:batchSize], pastGamesStates[1][0:batchSize], lr,ge[x])
+                    nets[games.index(game)].backProp_GenomeFast(pastGamesStates[0][0:batchSize], pastGamesStates[1][0:batchSize], lr,ge[x])
 
                 print("\n the batch acc is")
                 print(nets[games.index(game)].batchAcc(pastGamesStates[0][0:10],pastGamesStates[1][0:10]))
@@ -221,7 +222,7 @@ def run(config_file):
     prerunTime = time.time()
 
     # Run for up to 50 generations.
-    winner = p.run(eval_genomes,10)
+    winner = p.run(eval_genomes,20)
 
     postRunTime = time.time()
 
