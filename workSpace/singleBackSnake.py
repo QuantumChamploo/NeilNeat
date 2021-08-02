@@ -93,24 +93,25 @@ def eval_genomes(genomes, config):
 
             enumTime1 = time.time()
 
-            lr = 1
+            lr = .05
             batchSize = 100
+            gradEpoch = 150
 
-            if gen % 50 == 0 and len(pastGamesStates[0]) > batchSize and stillGradTrain:
+            if gen % gradEpoch == 0 and len(pastGamesStates[0]) > batchSize and stillGradTrain:
                 stillDo = False
-                print("flipped stillDo")
+                # print("flipped stillDo")
                 batchTime1 = time.time()
-                print("about to start 10 sized training loop on all examples")
-                for i in range(20):
+                # print("about to start 10 sized training loop on all examples")
+                for i in range(50):
                     print(i)
                     nets[games.index(game)].backProp_GenomeFast(pastGamesStates[0][-batchSize:-1], pastGamesStates[1][-batchSize:-1], lr,ge[x])
 
-                print("\n the batch acc is")
-                print(nets[games.index(game)].batchAcc(pastGamesStates[0][0:10],pastGamesStates[1][0:10]))
-                batchTime2 = time.time()
-                print("the post training time for genome")
-                print(batchTime2-batchTime1)
-            if gen % 51 == 0:
+                # print("\n the batch acc is")
+                # print(nets[games.index(game)].batchAcc(pastGamesStates[0][0:10],pastGamesStates[1][0:10]))
+                # batchTime2 = time.time()
+                # print("the post training time for genome")
+                # print(batchTime2-batchTime1)
+            if gen % (gradEpoch + 1) == 0:
                 stillDo = True
                 stillGradTrain = True
             # print("\n\n\n")
@@ -192,9 +193,9 @@ def eval_genomes(genomes, config):
 
 
 
-            if gen % 5 == 0 and len(pastGamesStates) > batchSize:
-                print("the full genome training time")
-                print(enumTime2 - enumTime1)
+            # if gen % 5 == 0 and len(pastGamesStates) > batchSize:
+            #     print("the full genome training time")
+            #     print(enumTime2 - enumTime1)
 
             if game.popCount > 400:
                 alive = False
@@ -269,7 +270,7 @@ def run(config_file):
     print(repr(winner))
     print("the fitness is ")
     print(winner.fitness)
-    visualize.plot_stats(stats,"Population's average and best fitness: Standard unconnected", ylog=False, view=True)
+    visualize.plot_stats(stats,"Population's average and best fitness: Standard noConnected", ylog=False, view=True)
     visualize.plot_species(stats, view=True)
 
     connections = [cg.key for cg in winner.connections.values() if cg.enabled]

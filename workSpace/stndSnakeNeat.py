@@ -167,7 +167,7 @@ def run(config_file):
     #p.add_reporter(neat.Checkpointer(5))
 
     # Run for up to 50 generations.
-    winner = p.run(eval_genomes,250)
+    winner = p.run(eval_genomes,500)
 
     # show final stats
     print('\nBest genome:\n{!s}'.format(winner))
@@ -206,5 +206,5 @@ if __name__ == '__main__':
     # here so that the script will run successfully regardless of the
     # current working directory.
     local_dir = os.path.dirname(__file__)
-    config_path = os.path.join(local_dir, 'configStandardSnake.txt')
+    config_path = os.path.join(local_dir, 'configStandardSnake2.txt')
     run(config_path)

@@ -539,7 +539,7 @@ class FeedForwardNetwork(object):
 
                     tensValues[node] = actDict[act_func](bias + response * s)
                 logits.append([tensValues[i] for i in self.output_nodes])
-                outReturn.append([tensValues[i].numpy for i in self.output_nodes])
+                outReturn.append([tensValues[i] for i in self.output_nodes])
 
 
 

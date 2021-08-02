@@ -96,23 +96,23 @@ def eval_genomes(genomes, config):
             lr = 1
             batchSize = 100
 
-            if gen % 50 == 0 and len(pastGamesStates[0]) > batchSize and stillGradTrain:
-                stillDo = False
-                print("flipped stillDo")
-                batchTime1 = time.time()
-                print("about to start 10 sized training loop on all examples")
-                for i in range(20):
-                    print(i)
-                    nets[games.index(game)].backProp_GenomeFast(pastGamesStates[0][-batchSize:-1], pastGamesStates[1][-batchSize:-1], lr,ge[x])
-
-                print("\n the batch acc is")
-                print(nets[games.index(game)].batchAcc(pastGamesStates[0][0:10],pastGamesStates[1][0:10]))
-                batchTime2 = time.time()
-                print("the post training time for genome")
-                print(batchTime2-batchTime1)
-            if gen % 51 == 0:
-                stillDo = True
-                stillGradTrain = True
+            # if gen % 50 == 0 and len(pastGamesStates[0]) > batchSize and stillGradTrain:
+            #     stillDo = False
+            #     print("flipped stillDo")
+            #     batchTime1 = time.time()
+            #     print("about to start 10 sized training loop on all examples")
+            #     for i in range(20):
+            #         print(i)
+            #         nets[games.index(game)].backProp_GenomeFast(pastGamesStates[0][-batchSize:-1], pastGamesStates[1][-batchSize:-1], lr,ge[x])
+            #
+            #     print("\n the batch acc is")
+            #     print(nets[games.index(game)].batchAcc(pastGamesStates[0][0:10],pastGamesStates[1][0:10]))
+            #     batchTime2 = time.time()
+            #     print("the post training time for genome")
+            #     print(batchTime2-batchTime1)
+            # if gen % 51 == 0:
+            #     stillDo = True
+            #     stillGradTrain = True
             # print("\n\n\n")
             # print("got out of decsent loop")
             # print("\n\n")
@@ -159,18 +159,18 @@ def eval_genomes(genomes, config):
 
 
 
-            if commit == True:
-                innies, outties = initGame.commit2Mem(max_index)
-                pastGamesStates[0].append(makeList(innies))
-                pastGamesStates[1].append(outties)
-                # print("\n \n \n")
-                # print(makeList(innies))
-                # print(outties)
-                # print(direction)
-                # print(initGame.munchMove(direction))
-                # print(initGame.movedFromWall(direction))
-                # print(initGame.movedTowardsFood(direction))
-                # print(initGame.check4Mem(direction))
+            # if commit == True:
+            #     innies, outties = initGame.commit2Mem(max_index)
+            #     pastGamesStates[0].append(makeList(innies))
+            #     pastGamesStates[1].append(outties)
+            #     # print("\n \n \n")
+            #     # print(makeList(innies))
+            #     # print(outties)
+            #     # print(direction)
+            #     # print(initGame.munchMove(direction))
+            #     # print(initGame.movedFromWall(direction))
+            #     # print(initGame.movedTowardsFood(direction))
+            #     # print(initGame.check4Mem(direction))
 
 
             if max_index == 0:
@@ -192,9 +192,9 @@ def eval_genomes(genomes, config):
 
 
 
-            if gen % 5 == 0 and len(pastGamesStates) > batchSize:
-                print("the full genome training time")
-                print(enumTime2 - enumTime1)
+            # if gen % 5 == 0 and len(pastGamesStates) > batchSize:
+            #     print("the full genome training time")
+            #     print(enumTime2 - enumTime1)
 
             if game.popCount > 400:
                 alive = False
@@ -248,7 +248,7 @@ def run(config_file):
 
 
     # Run for up to 50 generations.
-    winner = p.run(eval_genomes,500)
+    winner = p.run(eval_genomes,800)
 
     postRunTime = time.time()
 
@@ -269,7 +269,7 @@ def run(config_file):
     print(repr(winner))
     print("the fitness is ")
     print(winner.fitness)
-    visualize.plot_stats(stats,"Population's average and best fitness: Standard unconnected", ylog=False, view=True)
+    visualize.plot_stats(stats,"Population's average and best fitness: Standard noConnected", ylog=False, view=True)
     visualize.plot_species(stats, view=True)
 
     connections = [cg.key for cg in winner.connections.values() if cg.enabled]
