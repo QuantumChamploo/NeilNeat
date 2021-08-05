@@ -1,7 +1,7 @@
 [NEAT]
 fitness_criterion     = min
 fitness_threshold     = 70000
-pop_size              = 150
+pop_size              = 50
 reset_on_extinction   = False
 no_fitness_termination = True
 
@@ -26,7 +26,7 @@ bias_mutate_rate        = 0.7
 bias_replace_rate       = 0.1
 
 # genome compatibility options
-compatibility_disjoint_coefficient = 1.0
+compatibility_disjoint_coefficient = .5
 compatibility_weight_coefficient   = 0.5
 
 # connection add/remove rates
@@ -71,10 +71,10 @@ weight_replace_rate     = 0.1
 compatibility_threshold = 5.0
 
 [DefaultStagnation]
-species_fitness_func = mean
+species_fitness_func = max
 max_stagnation       = 10
 species_elitism      = 2
 
 [DefaultReproduction]
-elitism            = 10
+elitism            = 5
 survival_threshold = 0.1

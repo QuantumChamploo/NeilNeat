@@ -198,8 +198,8 @@ def run(config_file):
     print("printing required")
     print(req)
 
-    stats.save_genome_fitness(delimiter=",",filename="genomeFitness1.csv")
-    stats.save_species_fitness(delimiter=",",filename="speciesFitness1.csv")
+    stats.save_genome_fitness(delimiter=",",filename="genomeFitness5.csv")
+    stats.save_species_fitness(delimiter=",",filename="speciesFitness5.csv")
 
     #print(winner.game.history)
 

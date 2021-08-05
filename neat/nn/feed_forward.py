@@ -498,6 +498,7 @@ class FeedForwardNetwork(object):
         # if len(self.input_nodes) != len(inputs):
         #     raise RuntimeError("Expected {0:n} inputs, got {1:n}".format(len(self.input_nodes), len(inputs)))
 
+        #t1 = time.time()
 
         tensValues = self.values
         tensDict = {}
@@ -519,14 +520,18 @@ class FeedForwardNetwork(object):
         for k in range(len(tensVars)):
             tensDif.append(0)
 
+        #t2 = time.time()
+
+        #print("init time %d",(t2 - t1))
 
 
         with tf.GradientTape() as tape:
             bce = tf.keras.losses.BinaryCrossentropy(from_logits=True)
-
+            #t3 = time.time()
+            #print("gradient initialization time is %d",(t3 - t2))
             logits = []
             for j in range(len(inputs)):
-
+                t4 = time.time()
                 for k, v in zip(self.input_nodes, inputs[j]):
                     self.values[k] = v
                 for node, act_func, agg_func, bias, response, links in tensEvals:
@@ -540,14 +545,25 @@ class FeedForwardNetwork(object):
                     tensValues[node] = actDict[act_func](bias + response * s)
                 logits.append([tensValues[i] for i in self.output_nodes])
                 outReturn.append([tensValues[i] for i in self.output_nodes])
+                #t5 = time.time()
+                #print("activation time is %d",(t5 - t4))
+            #t6 = time.time()
+            #print("the full set act time is $d",(t6 - t3))
+
 
 
 
             loss = bce(outputs, logits)
+            #t7 = time.time()
+            #print("the loss function time is %d",(t7-t6))
 
+        #t8 = time.time()
+        #print("the whole grad tape process is %d",(t8-t2))
 
         num = 0
         dif = tape.gradient(loss, tensVars)
+        #t9 = time.time()
+        #print("tape.gradient time spent is %d",(t9 - t8))
         for node, act_func, agg_func, bias, response, links in tensEvals:
             for i, w in links:
                 # dif = tape.gradient(loss, tensVars[num])
@@ -557,7 +573,8 @@ class FeedForwardNetwork(object):
         # for i in self.output_nodes:
         #     print(tensValues[i])
 
-
+        #t10 = time.time()
+        #print("making dif array time is %d",(t10 - t9))
         newEvals = []
         count = 0
         # for i in tensVars:
@@ -576,6 +593,10 @@ class FeedForwardNetwork(object):
 
         self.node_evals = newEvals
 
+        #t11 = time.time()
+
+        #print("the writing of genome file time is %d",(t11 - t10))
+        #print("the total time is %d", (t11 - t1))
 
 
         return outReturn

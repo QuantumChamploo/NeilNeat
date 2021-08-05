@@ -99,16 +99,16 @@ def eval_genomes(genomes, config):
 
             enumTime1 = time.time()
 
-            lr = .1
-            batchSize = 100
-            genSize = 5
+            lr = .05
+            batchSize = 50
+            genSize = 10
 
             if gen % genSize == 0 and len(pastGamesStates[0]) > batchSize and stillGradTrain:
                 stillDo = False
                 print("flipped stillDo")
                 batchTime1 = time.time()
                 print("about to start 10 sized training loop on all examples")
-                for i in range(100):
+                for i in range(200):
                     print(i)
                     nets[games.index(game)].backProp_GenomeFast(pastGamesStates[0][-batchSize:-1], pastGamesStates[1][-batchSize:-1], lr,ge[x])
                 avgHld.append(nets[games.index(game)].batchAcc(pastGamesStates[0][-batchSize:-1],pastGamesStates[1][-batchSize:-1]))
@@ -256,7 +256,7 @@ def run(config_file):
 
 
     # Run for up to 50 generations.
-    winner = p.run(eval_genomes,6)
+    winner = p.run(eval_genomes,15)
 
     postRunTime = time.time()
 
@@ -308,5 +308,5 @@ if __name__ == '__main__':
     # here so that the script will run successfully regardless of the
     # current working directory.
     local_dir = os.path.dirname(__file__)
-    config_path = os.path.join(local_dir, 'configStandardSnake2.txt')
+    config_path = os.path.join(local_dir, 'configTimed.txt')
     run(config_path)
