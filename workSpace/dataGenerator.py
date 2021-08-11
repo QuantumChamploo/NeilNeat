@@ -10,10 +10,20 @@ import numpy as np
 import math
 from neat.graphs import feed_forward_layers
 from neat.graphs import required_for_output
+import tensorflow as tf
+import pandas as pd
+
+tf.config.run_functions_eagerly(True)
+
 
 gen = 0
 
+stillGradTrain = True
+stillDo = True
 
+toPandas = []
+
+pastGamesStates = [[],[]]
 
 def makeList(mat):
 	hld = []
@@ -24,6 +34,8 @@ def makeList(mat):
 	return hld
 
 def find_index(array):
+    if array == [0,0,0,0]:
+        return np.random.choice(4, 4, replace=False)
     s = np.array(array)
     sort_index = np.argsort(s)
     return sort_index
@@ -32,6 +44,8 @@ def eval_genomes(genomes, config):
     #print('in eval')
 
     global gen
+    global stillDo
+    global stillGradTrain
 
     gen += 1
 
@@ -46,18 +60,31 @@ def eval_genomes(genomes, config):
         nets.append(net)
         games.append(snakeGame())
         ge.append(genome)
+        #print(genome)
 
     run = True
     tab = 0
 
+
+
     while run and len(games) > 0:
+        # print("\n\n")
+        # print("got out of enum looop")
+        # print("\n")
         tab +=1
-        # if tab % 100 == 0:
-        #     print('did 100 runs')
-        #     print(tab)
-        #     print(len(games))
+
+        if stillDo == False and stillGradTrain == True:
+            print("flipped gradtrain")
+            stillGradTrain = False
+
 
         for x, game in enumerate(games):
+            # print("the games szie is ")
+            # print(len(games))
+            # print("\n\n\n in top of enumerate")
+            assert ge[x] == ge[games.index(game)]
+
+            # print(x)
             ge[x].game = game
             moved = False
             #output = nets[games.index(game)].activate((makeList(game.toString())))
@@ -68,8 +95,94 @@ def eval_genomes(genomes, config):
             third_index = ind_arr[-3]
             fourth_index = ind_arr[-4]
 
+            enumTime1 = time.time()
+
+            lr = .05
+            batchSize = 100
+            gradEpoch = 150
+
+            if gen % gradEpoch == 0 and len(pastGamesStates[0]) > batchSize and stillGradTrain:
+                stillDo = False
+                # print("flipped stillDo")
+                batchTime1 = time.time()
+                # print("about to start 10 sized training loop on all examples")
+                for i in range(50):
+                    print(i)
+                    nets[games.index(game)].backProp_GenomeFast(pastGamesStates[0][-batchSize:-1], pastGamesStates[1][-batchSize:-1], lr,ge[x])
+
+                # print("\n the batch acc is")
+                # print(nets[games.index(game)].batchAcc(pastGamesStates[0][0:10],pastGamesStates[1][0:10]))
+                # batchTime2 = time.time()
+                # print("the post training time for genome")
+                # print(batchTime2-batchTime1)
+            if gen % (gradEpoch + 1) == 0:
+                stillDo = True
+                stillGradTrain = True
+            # print("\n\n\n")
+            # print("got out of decsent loop")
+            # print("\n\n")
+
+            initGame = game
             initScore = game.score
             initFit = ge[x].fitness
+
+            commit = False
+            #print(output)
+            if max_index == 0:
+                #print("went left")
+                direction = "left"
+                commit, intention = initGame.check4Mem(direction)
+                # if commit == True:
+                #     print("in indexing")
+                #     print(direction)
+
+                #game.move_left()
+            if max_index == 1:
+                #print("went right")
+                direction = "right"
+                commit, intention = initGame.check4Mem(direction)
+                # if commit == True:
+                #     print("in indexing")
+                #     print(direction)
+                #game.move_right()
+            if max_index == 2:
+                #print("went up")
+                direction = "up"
+                commit, intention = initGame.check4Mem(direction)
+                # if commit == True:
+                #     print("in indexing")
+                #     print(direction)
+                #game.move_up()
+            if max_index == 3:
+                #print("went down")
+                direction = "down"
+                commit, intention = initGame.check4Mem(direction)
+                # if commit == True:
+                #     print("in indexing")
+                #     print(direction)
+                #game.move_down()
+
+
+
+            if commit == True:
+                tempRay = []
+                innies, outties = initGame.commit2Mem(max_index)
+                pastGamesStates[0].append(makeList(innies))
+                pastGamesStates[1].append(outties)
+                tempRay.append(makeList(innies))
+                tempRay.append(outties)
+                tempRay.append(intention)
+                toPandas.append(tempRay)
+                # print("\n \n \n")
+                # print(makeList(innies))
+                # print(outties)
+                # print(direction)
+                # print(initGame.munchMove(direction))
+                # print(initGame.movedFromWall(direction))
+                # print(initGame.movedTowardsFood(direction))
+                # print(initGame.check4Mem(direction))
+
+
             if max_index == 0:
                 game.move_left()
             if max_index == 1:
@@ -79,74 +192,47 @@ def eval_genomes(genomes, config):
             if max_index == 3:
                 game.move_down()
 
+
             move_dict = {0:game.propDirect([-10, 0]),1:game.propDirect([10,0]),2:game.propDirect([0, -10]),3:game.propDirect([0,10])}
             newScore = game.score
-            # print('gene num is ')
-            # print(x)
-            # print(max_index)
-            # print(game.direction)
+
             alive = game.checkGame()
+
+            enumTime2 = time.time()
+
+
+
+            # if gen % 5 == 0 and len(pastGamesStates) > batchSize:
+            #     print("the full genome training time")
+            #     print(enumTime2 - enumTime1)
+
             if game.popCount > 400:
                 alive = False
-                #print("over pop")
+
             if alive == False:
                 if len(games) == 1:
-                    if(game.score >= 3):
-                        #print(game.history)
-                        #print(game.sight)
-                        hlder = 33
+
+                    hlder = 33
 
                 nets.pop(games.index(game))
                 ge.pop(games.index(game))
                 games.pop(games.index(game))
-                #print('popped one')
+
             else:
+
                 if game.popCount < 40:
                     ge[x].fitness += 5
-                    if move_dict[max_index][1] == 1:
-                        ge[x].fitness += 5
+                    # if move_dict[max_index][1] == 1:
+                    #     ge[x].fitness += 10
 
-                #ge[x].fitness += 4*2**(-1*game.distToFood()/15)
-                # if game.d2f < game.d2fPrev:
-                #     ge[x].fitness += 3
-                #     # if x == 0:
-                #     #     print("got closer")
-                # else:
-                #     ge[x].fitness -= 2
-                # # if x == 0:
-                # else:
-                #     print("greater than 40 pops")
-                #     print(game.history)
-                #     print("\n")
-                #     print("\n")
-                #     print("\n")
 
-                #     print(4*2**(-1*game.distToFood()/15))
                 if newScore - initScore > 0:
                     ge[x].fitness += 200
-                    # print (game.score)
-                    # if game.score > 1:
-                    #     for i in game.history:
-                    #         print(i)
+
                 if ge[x].fitness > initFit and game.popCount >40:
                     print("something is not good")
 
-                    #print('moving towards food')
 
-        #  if tab % 100 == 0:
-                # print('did 100 runs')
-                # print(tab)
-                # print(len(games))
-                # print('gene num is ')
-                # print(x)
-                # print(max_index)
-                # print(game.direction)
-                # print(game.pos)
-                # print(game.popCount)
-            # if x == 0:
-            # 	print(game.toString())
-            # 	print("---")
-            # 	print("---")
 
 def run(config_file):
     """
@@ -167,8 +253,20 @@ def run(config_file):
     p.add_reporter(stats)
     #p.add_reporter(neat.Checkpointer(5))
 
+    prerunTime = time.time()
+
+
+
     # Run for up to 50 generations.
-    winner = p.run(eval_genomes,100)
+    winner = p.run(eval_genomes,30)
+
+    postRunTime = time.time()
+
+    df = pd.DataFrame(toPandas,columns=["inputs","outputs","intention"])
+    df.to_csv("testData3.csv")
+
+    print("the entire time is ")
+    print(postRunTime-prerunTime)
 
     # show final stats
     print('\nBest genome:\n{!s}'.format(winner))
@@ -180,11 +278,11 @@ def run(config_file):
                                                     ,-16:'NE body',-17:'NE food',-18:'NE dist'
                                                     ,-19:'SW body',-20:'SW food',-21:'SW dist'
                                                     ,-22:'NW body',-23:'NW food',-24:'NW dist'}
-    visualize.draw_net(config, winner, True, 'snakeMultLayerStnd3',node_names=node_names)
+    #visualize.draw_net(config, winner, True, 'snakeMultLayerStnd',node_names=node_names)
     print(repr(winner))
     print("the fitness is ")
     print(winner.fitness)
-    visualize.plot_stats(stats,"Population's average and best fitness: Standard Script 3 full no direct", ylog=False, view=True)
+    visualize.plot_stats(stats,"Population's average and best fitness: Standard noConnected", ylog=False, view=True)
     visualize.plot_species(stats, view=True)
 
     connections = [cg.key for cg in winner.connections.values() if cg.enabled]
@@ -198,9 +296,6 @@ def run(config_file):
     req = required_for_output(config.genome_config.input_keys, config.genome_config.output_keys, connections)
     print("printing required")
     print(req)
-
-    #stats.save_genome_fitness(delimiter=",",filename="genomeFitness16.csv")
-    #stats.save_species_fitness(delimiter=",",filename="speciesFitness16.csv")
 
     #print(winner.game.history)
 

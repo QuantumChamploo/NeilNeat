@@ -256,7 +256,7 @@ def run(config_file):
 
 
     # Run for up to 50 generations.
-    winner = p.run(eval_genomes,15)
+    winner = p.run(eval_genomes,30)
 
     postRunTime = time.time()
 

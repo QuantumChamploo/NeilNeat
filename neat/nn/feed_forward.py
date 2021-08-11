@@ -585,7 +585,7 @@ class FeedForwardNetwork(object):
                 delta = tensDif[count]
 
                 w -= delta * learning_rate
-                newLinks.append((i, w.numpy()))
+                newLinks.append((i, w))
                 count += 1
                 genome.connections[(i, node)].weight = w
 

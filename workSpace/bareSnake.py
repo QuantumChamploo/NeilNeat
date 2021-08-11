@@ -157,15 +157,15 @@ class snakeGame():
 	def check4Mem(self,direction):
 		if self.munchMove(direction):
 			#print("munch move")
-			return True
+			return True, "munch"
 		elif self.movedFromWall(direction):
 			#print("moved from wall")
-			return True
+			return True, "wall move"
 		elif self.movedTowardsFood(direction):
 			#print("moved towards food")
-			return True
+			return True, "food move"
 		else:
-			return False
+			return False, "nothing"
 
 	def commit2Mem(self,direction_num):
 		self.game8()
